@@ -1,0 +1,123 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Define the sets of keywords, operators, and delimiters
+set<string> keywords = {
+    "int", "float", "double", "char", "if", "else", "for", "while", "do", 
+    "switch", "case", "return", "void", "static", "struct", "typedef", "const", "printf","scanf","include","main","stdio.h"
+};
+
+set<char> arithmeticOps = {'+', '-', '*', '/', '%'};
+set<string> logicalOps = {"&&", "||", "!"};
+set<char> otherOps = {'=', '<', '>', '&', '|', '^', '~'};
+
+// Function to read the content of a file
+string readFile(const string& fileName) {
+    ifstream file(fileName);
+    if (!file.is_open()) {
+        cerr << "Error: Could not open file " << fileName << endl;
+        exit(EXIT_FAILURE);
+    }
+    stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
+// Function to split a string into tokens
+vector<string> tokenize(const string& code) {
+    vector<string> tokens;
+    string token = "";
+    for (char c : code) {
+        if (isalnum(c) || c == '_') {
+            token += c; // Build token
+        } else {
+            if (!token.empty()) tokens.push_back(token);
+            token = ""; // Reset token
+            if (!isspace(c)) tokens.push_back(string(1, c));
+        }
+    }
+    if (!token.empty()) tokens.push_back(token);
+    return tokens;
+}
+
+// Main analysis function
+void analyzeCode(const string& code) {
+    vector<string> key, iden, aops, lops, oops, cons, comments;
+
+    vector<string> tokens = tokenize(code);
+    bool inComment = false;
+
+    for (size_t i = 0; i < tokens.size(); i++) {
+        string token = tokens[i];
+
+        // Handle comments
+        if (token == "/" && i + 1 < tokens.size() && tokens[i + 1] == "/") {
+            inComment = true;
+            string comment = "";
+            while (i < tokens.size() && tokens[i] != "\n") {
+                comment += tokens[i++];
+            }
+            comments.push_back(comment);
+            inComment = false;
+            continue;
+        } else if (token == "/" && i + 1 < tokens.size() && tokens[i + 1] == "*") {
+            inComment = true;
+            string comment = "";
+            while (i + 1 < tokens.size() && !(tokens[i] == "*" && tokens[i + 1] == "/")) {
+                comment += tokens[i++];
+            }
+            comment += "*/";
+            i++;
+            comments.push_back(comment);
+            inComment = false;
+            continue;
+        }
+
+        // Skip comments or whitespace
+        if (inComment || token.empty()) continue;
+
+        // Categorize tokens
+        if (keywords.count(token)) {
+            key.push_back(token);
+        } else if (arithmeticOps.count(token[0]) && token.size() == 1) {
+            aops.push_back(token);
+        } else if (logicalOps.count(token)) {
+            lops.push_back(token);
+        } else if (otherOps.count(token[0]) && token.size() == 1) {
+            oops.push_back(token);
+        } else if (isdigit(token[0])) {
+            cons.push_back(token);
+        } else if (isalpha(token[0]) || token[0] == '_') {
+            iden.push_back(token);
+        }
+    }
+
+    // Output results
+    cout << "\nKeywords\n";
+    for (const auto& k : key) cout << k << endl;
+
+    cout << "\nIdentifiers\n";
+    for (const auto& id : iden) cout << id << endl;
+
+    cout << "\nArithmetic operators\n";
+    for (const auto& op : aops) cout << op << endl;
+
+    cout << "\nLogical operators\n";
+    for (const auto& op : lops) cout << op << endl;
+
+    cout << "\nOther operators\n";
+    for (const auto& op : oops) cout << op << endl;
+
+    cout << "\nConstants\n";
+    for (const auto& c : cons) cout << c << endl;
+
+    cout << "\nComments\n";
+    for (const auto& com : comments) cout << com << endl;
+}
+
+int main() {
+    string fileName = "quicksort.c"; // Input C file
+    string code = readFile(fileName);
+    analyzeCode(code);
+    return 0;
+}
