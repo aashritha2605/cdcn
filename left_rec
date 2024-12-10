@@ -1,0 +1,15 @@
+#left recursion
+def eliminate_left_recursion(production):
+    print(f"Original Production: {production}")
+
+    alpha = production[4:production.index('|')].strip()  # Aα
+    beta = production[production.index('|') + 1:].strip()  # β
+    alpha=alpha[1:]
+    print("Transformed Productions:")
+    print(f"{production[0]} → {beta}{production[0]}'")
+    print(f"{production[0]}' → {alpha}{production[0]}' | ε")  
+
+if __name__ == "__main__":
+    production=input(str("enter production :"))
+    #production = "A → Aα | β"
+    eliminate_left_recursion(production)
