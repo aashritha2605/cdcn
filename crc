@@ -1,0 +1,104 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+string xordiv(string tmp,string d){
+    string r,word="";
+    int i=0;
+    for(i=0;i<d.size();i++) word+=tmp[i];
+    while(i<=tmp.size()){
+        if(word.size() == d.size()){
+            int j=0;
+            while(j<d.size()){
+                int x= (((word[j]-'0')^(d[j]-'0')));
+                if(x) word[j]='1';
+                else word[j]='0';
+                j++;
+            }
+            int f=word.find('1');
+            string w="";
+            for(int k=f;k<word.size();k++){
+                w+=word[k];
+            }
+            word=w;
+        }
+        else{
+            if(i==tmp.size()) break;
+            word+=tmp[i];
+            i++;
+        }
+    }
+    if(word.size()<d.size()){
+        int diff=(d.size()-word.size()-1);
+        reverse(word.begin(),word.end());
+        for(int i=0;i<diff;i++){
+            word+='0';
+        }
+        reverse(word.begin(),word.end());
+    }
+    return word;
+}
+
+string sender(string data,string d){
+    string tmp=data;
+    for(int i=0;i<(d.size()-1);i++) tmp+='0';
+    string crc=xordiv(tmp,d);
+    cout<<"CRC: "<<crc<<endl;
+    string code=data+crc;
+    cout<<"code word: "<<code<<endl;
+    return code;
+}
+
+string receiver(string code,string d){
+    return xordiv(code,d);
+}
+
+int main() {
+    // Write C++ code here
+    string data;
+    cout<<"Sender side:\nEnter Data word: ";
+    cin>>data;
+    string poly;
+    cout<<"Enter the Polynomial: ";
+    cin>>poly;
+    int div=0,n=0;
+    for(int i=0;i<poly.size();i++){
+        if(poly[i]!='x' && poly[i]!='+'){
+            n= n*10 + (poly[i]-'0');
+        }
+        else if(poly[i]=='+'){
+            div^=(1<<(n));
+            n=0;
+        }
+    }
+    if(poly[poly.size()-1]=='1') div^=(1);
+    string d="";
+    while(div>0){
+        if(div&1) d+='1';
+        else d+='0';
+        div>>=1;
+    }
+    reverse(d.begin(),d.end());
+    cout<<"Divisor"<<d<<endl;
+    string code = sender(data,d);
+    cout<<"Receiver side:"<<endl<<"code word: "<<code<<endl;
+    string tst=receiver(code,d);
+    cout<<"case 0: Without Error\n"<<"Divisor :"<<d<<endl<<"Syndrome: "<<tst<<endl;
+    int f=tst.find('1');
+    if(f==-1){
+        cout<<"As syndrome contains all Zeroes the code word is Accepted"<<endl;
+    }
+    else{
+        cout<<"As syndrome contains ones the code word is Not Accepted"<<endl;
+    }
+    code[5]=(code[5]=='1')?'0':'1';
+    tst=receiver(code,d);
+    cout<<"case 1: With Error\n"<<"Divisor :"<<d<<endl<<"Syndrome: "<<tst<<endl;
+    f=tst.find('1');
+    if(f==-1){
+        cout<<"As syndrome contains all Zeroes the code word is Accepted"<<endl;
+    }
+    else{
+        cout<<"As syndrome contains ones the code word is Not Accepted"<<endl;
+    }
+    return 0;
+}
