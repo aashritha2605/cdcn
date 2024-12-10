@@ -1,0 +1,142 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Function to perform 10-bit bit stuffing
+string bitstuffing(string s) {
+    int c = 0;
+    string s1 = "";
+    for (int i = 0; i < s.length(); i++) {
+        if (s[i] == '1') {
+            s1 += s[i];
+            c++;
+            if (c == 10) { // Stuff a 0 after ten consecutive 1s
+                s1 += '0';
+                c = 0; // Reset the count
+            }
+        } else {
+            s1 += s[i];
+            c = 0; // Reset count if the bit is 0
+        }
+    }
+    return s1; // Return the stuffed string
+}
+
+// Function to perform 10-bit bit destuffing
+string bitdestuffing(string s2) {
+    string s3 = "";
+    int c1 = 0;
+    for (int i = 0; i < s2.length(); i++) {
+        if (s2[i] == '1') {
+            s3 += s2[i];
+            c1++;
+            if (c1 == 10) {
+                i++; // Skip the stuffed 0
+                c1 = 0;
+            }
+        } else {
+            s3 += s2[i];
+            c1 = 0;
+        }
+    }
+    return s3;
+}
+
+// Function to add framing to stuffed binary data
+string addFrame(string stuffedData) {
+    string frameDelimiter = "01111110"; // Frame delimiter (flag)
+    return frameDelimiter + stuffedData + frameDelimiter; // Add delimiters
+}
+
+// Function to remove framing from stuffed binary data
+string removeFrame(string framedData) {
+    string frameDelimiter = "01111110"; // Frame delimiter (flag)
+    size_t start = framedData.find(frameDelimiter);
+    size_t end = framedData.rfind(frameDelimiter);
+    if (start != string::npos && end != string::npos && start != end) {
+        return framedData.substr(start + frameDelimiter.length(),
+                                 end - start - frameDelimiter.length());
+    }
+    return ""; // Return empty string if framing is invalid
+}
+
+// Function to convert a string to its binary representation
+string strToBinary(string s) {
+    string s1 = "";
+    for (size_t i = 0; i < s.size(); i++) {
+        string bin = bitset<8>(s[i]).to_string(); // Converts each character to a binary string
+        s1 += bin;
+    }
+    return s1;
+}
+
+// Function to convert binary data back to the string
+string binaryToStr(string binary) {
+    string text = "";
+    for (size_t i = 0; i < binary.size(); i += 8) {
+        string byte = binary.substr(i, 8); // Get 8 bits
+        char c = static_cast<char>(bitset<8>(byte).to_ulong()); // Convert to character
+        text += c;
+    }
+    return text;
+}
+
+// Function to read input from a file
+string readFile(const string& fileName) {
+    ifstream file(fileName);
+    if (!file.is_open()) {
+        cerr << "Error: Could not open file " << fileName << endl;
+        exit(EXIT_FAILURE);
+    }
+    stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
+// Function to write output to a file
+void writeFile(const string& fileName, const string& content) {
+    ofstream file(fileName);
+    if (!file.is_open()) {
+        cerr << "Error: Could not open file " << fileName << endl;
+        exit(EXIT_FAILURE);
+    }
+    file << content;
+    file.close();
+}
+
+// Driver code
+int main() {
+    // Read input string from a file
+    string inputFile = "aash.txt"; // Input file name
+    string input = readFile(inputFile);
+    cout << "Original String: " << input << endl;
+
+    // Convert string to binary
+    string binaryData = strToBinary(input);
+    cout << "Binary Representation: " << binaryData << endl;
+
+    // Perform 10-bit bit stuffing
+    string stuffedData = bitstuffing(binaryData);
+    cout << "Stuffed Binary: " << stuffedData << endl;
+
+    // Add framing
+    string framedData = addFrame(stuffedData);
+    cout << "Framed Data: " << framedData << endl;
+
+    // Write framed data to an output file
+    string outputFile = "output.txt";
+    writeFile(outputFile, framedData);
+
+    // Remove framing
+    string extractedFrame = removeFrame(framedData);
+    cout << "Extracted Frame (After Removing Frame): " << extractedFrame << endl;
+
+    // Perform 10-bit bit destuffing
+    string destuffedData = bitdestuffing(extractedFrame);
+    cout << "Destuffed Binary: " << destuffedData << endl;
+
+    // Convert back to original string
+    string originalString = binaryToStr(destuffedData);
+    cout << "Recovered String: " << originalString << endl;
+
+    return 0;
+}
