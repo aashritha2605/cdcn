@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+// Function to perform byte stuffing
+void byteStuffing(const char* input, char* stuffed, const char* flag, const char* esc) {
+    strcat(stuffed, flag);
+    strcat(stuffed, " "); // Add flag with a space at the start
+
+    for (int i = 0; i < strlen(input); i++) {
+        if (strncmp(&input[i], esc, strlen(esc)) == 0) {
+            strcat(stuffed, esc); // Add esc
+            strcat(stuffed, " "); // Add a space
+            strcat(stuffed, esc); // Add the original esc
+            strcat(stuffed, " "); // Add another space
+            i += strlen(esc) - 1;
+        } else if (strncmp(&input[i], flag, strlen(flag)) == 0) {
+            strcat(stuffed, esc); // Add esc
+            strcat(stuffed, " "); // Add a space
+            strcat(stuffed, flag); // Add the flag
+            strcat(stuffed, " "); // Add another space
+            i += strlen(flag) - 1;
+        } else {
+            strncat(stuffed, &input[i], 1); // Add regular character
+        }
+    }
+
+    strcat(stuffed, flag);
+    strcat(stuffed, " "); // Add flag with a space at the end
+}
+
+// Function to perform byte destuffing
+void byteDestuffing(const char* stuffed, char* original, const char* flag, const char* esc) {
+    int i = strlen(flag) + 1; // Start after the initial flag and space
+
+    while (i < strlen(stuffed) - strlen(flag) - 1) { // Stop before the ending flag and space
+        if (strncmp(&stuffed[i], esc, strlen(esc)) == 0) {
+            i += strlen(esc) + 1; // Skip the esc and space
+            if (strncmp(&stuffed[i], flag, strlen(flag)) == 0) {
+                strcat(original, flag); // Add flag if found after esc
+                i += strlen(flag) + 1;
+            } else if (strncmp(&stuffed[i], esc, strlen(esc)) == 0) {
+                strcat(original, esc); // Add esc if found after esc
+                i += strlen(esc) + 1;
+            }
+        } else {
+            strncat(original, &stuffed[i], 1); // Add regular character
+            i++;
+        }
+    }
+}
+
+int main() {
+    const char* flag = "flag"; // Define flag
+    const char* esc = "esc";   // Define escape sequence
+
+    char input[100];     // Input buffer
+    char stuffed[300] = ""; // Stuffed buffer
+    char original[100] = ""; // Original buffer after destuffing
+
+    printf("Enter the input sentence: ");
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = '\0'; // Remove newline character
+
+    // Perform byte stuffing
+    byteStuffing(input, stuffed, flag, esc);
+    printf("Stuffed data: %s\n", stuffed);
+
+    // Perform byte destuffing
+    byteDestuffing(stuffed, original, flag, esc);
+    printf("Original data after destuffing: %s\n", original);
+
+    return 0;
+}
