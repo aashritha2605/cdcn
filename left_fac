@@ -1,0 +1,49 @@
+#left factoring
+def longest_common_prefix(strings):
+    if not strings:
+        return ""
+   
+    prefix = strings[0]
+    for string in strings[1:]:
+        while not string.startswith(prefix):
+            prefix = prefix[:-1]
+            if not prefix:
+                return ""
+    return prefix
+
+def left_factoring(productions):
+    factored_productions = []
+    for lhs, rhs_list in productions.items():
+        # Find the longest common prefix
+        common_prefix = longest_common_prefix(rhs_list)
+       
+        if common_prefix:
+            new_rhs = [rhs[len(common_prefix):] for rhs in rhs_list if rhs.startswith(common_prefix)]
+            new_lhs = lhs + "'"
+            factored_productions.append(f"{lhs} → {common_prefix}{new_lhs}")
+            if new_rhs:
+                factored_productions.append(f"{new_lhs} → " + " | ".join(new_rhs + ['∈']))
+        else:
+            # No common prefix found
+            factored_productions.append(f"{lhs} → " + " | ".join(rhs_list))
+
+    return factored_productions
+
+
+def main():
+    productions = {}
+    while True:
+        lhs = input("Enter non-terminal (or 'done' to finish): ")
+        if lhs.lower() == 'done':
+            break
+        rhs = input(f"Enter productions for {lhs} (comma-separated): ").split(',')
+        productions[lhs] = [r.strip() for r in rhs]
+
+    factored = left_factoring(productions)
+    print("\nLeft Factored Productions:")
+    for line in factored:
+        print(line)
+
+
+if __name__ == "__main__":
+    main()
